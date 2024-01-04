@@ -10,17 +10,13 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       {
         name: 'ASHLAND_SERVICE',
         useFactory: (configService: ConfigService) => ({
-          transport: Transport.RMQ,
+          transport: Transport.NATS,
           options: {
-            urls: [
-              `amqp://${configService.get(
-                'RABBIT_MQ_HOST',
-              )}:${configService.get('RABBIT_MQ_PORT')}`,
+            servers: [
+              `nats://${configService.get('NATS_HOST')}:${configService.get(
+                'NATS_PORT',
+              )}`,
             ],
-            queue: configService.get('RABBIT_MQ_LOGS_QUEUE_NAME'),
-            queueOptions: {
-              durable: false,
-            },
           },
         }),
         inject: [ConfigService],
@@ -28,5 +24,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     ]),
   ],
   providers: [AshlandBridgeService],
+  exports: [AshlandBridgeService],
 })
 export class AshlandBridgeModule {}
