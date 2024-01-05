@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { TaskEntity } from './task.entity';
 import { Repository } from 'typeorm';
 import { AshlandBridgeService } from 'src/ashland-bridge/ashland-bridge.service';
+import { CreateTaskRequest } from 'src/proto/tasks_pb';
 
 @Injectable()
 export class TasksService {
@@ -12,13 +13,19 @@ export class TasksService {
     private readonly ashlandBridgeService: AshlandBridgeService,
   ) {}
 
-  async create(task: TaskEntity): Promise<TaskEntity> {
-    const createdTask = await this.tasksRepository.save(task);
+  async create(task: CreateTaskRequest.AsObject): Promise<TaskEntity> {
+    const createdTask = await this.tasksRepository.save({
+      title: task.title,
+      description: task.description,
+      parentId: task.parenttaskid,
+    });
+
     this.ashlandBridgeService.sendLog({
       action: 'create task',
       timestamp: new Date(),
       message: 'task created, body: ' + JSON.stringify(task),
     });
+
     return createdTask;
   }
 
