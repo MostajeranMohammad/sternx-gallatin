@@ -1,97 +1,89 @@
 import { Controller } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { GrpcMethod } from '@nestjs/microservices';
+import { TaskEntity } from './task.entity';
 import {
   CreateTaskRequest,
   CreateTaskResponse,
   DeleteTaskRequest,
+  DeleteTaskResponse,
   GetAllTasksRequest,
   GetAllTasksResponse,
   Task,
   UpdateTaskRequest,
   UpdateTaskResponse,
-  DeleteTaskResponse,
-} from 'src/proto/tasks_pb';
-import { TaskEntity } from './task.entity';
+} from 'src/proto/interfaces';
 @Controller()
 export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @GrpcMethod('TasksService', 'CreateTask')
-  async CreateTask(
-    data: CreateTaskRequest,
-  ): Promise<CreateTaskResponse.AsObject> {
-    const result = await this.tasksService.create(data.toObject());
+  async CreateTask(data: CreateTaskRequest): Promise<CreateTaskResponse> {
+    const result = await this.tasksService.create(data);
 
-    return <CreateTaskResponse.AsObject>{
-      task: <Task.AsObject>{
+    return <CreateTaskResponse>{
+      task: <Task>{
         id: result.id,
         title: result.title,
         description: result.description,
-        parenttaskid: result.parentId,
-        createdat: result.createdAt,
+        parentTaskId: result.parentId,
+        createdAt: result.createdAt.toISOString(),
       },
     };
   }
 
   @GrpcMethod('TasksService', 'UpdateTask')
-  async UpdateTask(
-    data: UpdateTaskRequest,
-  ): Promise<UpdateTaskResponse.AsObject> {
-    const result = await this.tasksService.update(data.getId(), <TaskEntity>{
-      title: data.getTitle(),
-      description: data.getDescription(),
-      parentId: data.getParenttaskid(),
+  async UpdateTask(data: UpdateTaskRequest): Promise<UpdateTaskResponse> {
+    const result = await this.tasksService.update(data.id, <TaskEntity>{
+      title: data.title,
+      description: data.description,
+      parentId: data.parentTaskId,
     });
 
-    return <UpdateTaskResponse.AsObject>{
-      task: <Task.AsObject>{
+    return <UpdateTaskResponse>{
+      task: <Task>{
         id: result.id,
         title: result.title,
         description: result.description,
-        parenttaskid: result.parentId,
-        createdat: result.createdAt,
-        updatedat: result.updatedAt,
+        parentTaskId: result.parentId,
+        createdAt: result.createdAt.toISOString(),
+        updatedAt: result.updatedAt.toISOString(),
       },
     };
   }
 
   @GrpcMethod('TasksService', 'DeleteTask')
-  async DeleteTask(
-    data: DeleteTaskRequest,
-  ): Promise<DeleteTaskResponse.AsObject> {
-    const result = await this.tasksService.remove(data.getId());
+  async DeleteTask(data: DeleteTaskRequest): Promise<DeleteTaskResponse> {
+    const result = await this.tasksService.remove(data.id);
 
-    return <DeleteTaskResponse.AsObject>{
-      task: <Task.AsObject>{
+    return <DeleteTaskResponse>{
+      task: <Task>{
         id: result.id,
         title: result.title,
         description: result.description,
-        parenttaskid: result.parentId,
-        createdat: result.createdAt,
-        updatedat: result.updatedAt,
+        parentTaskId: result.parentId,
+        createdAt: result.createdAt.toISOString(),
+        updatedAt: result.updatedAt.toISOString(),
       },
     };
   }
 
   @GrpcMethod('TasksService', 'GetAllTasks')
-  async GetAllTasks(
-    data: GetAllTasksRequest,
-  ): Promise<GetAllTasksResponse.AsObject> {
+  async GetAllTasks(data: GetAllTasksRequest): Promise<GetAllTasksResponse> {
     const result = await this.tasksService.findAll(
-      (data.getPageNumber() - 1) * data.getPageSize(),
-      data.getPageSize(),
+      (data.pageNumber - 1) * data.pageSize,
+      data.pageSize,
     );
 
-    return <GetAllTasksResponse.AsObject>{
-      tasksList: result.map((task) => {
-        return <Task.AsObject>{
+    return <GetAllTasksResponse>{
+      tasks: result.map((task) => {
+        return <Task>{
           id: task.id,
           title: task.title,
           description: task.description,
-          parenttaskid: task.parentId,
-          createdat: task.createdAt,
-          updatedat: task.updatedAt,
+          parentTaskId: task.parentId,
+          createdAt: task.createdAt.toISOString(),
+          updatedAt: task.updatedAt.toISOString(),
         };
       }),
     };
