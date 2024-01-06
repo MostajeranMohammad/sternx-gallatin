@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { TaskEntity } from './task.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
 import { AshlandBridgeService } from 'src/ashland-bridge/ashland-bridge.service';
 import { CreateTaskRequest } from 'src/proto/interfaces';
 
@@ -30,7 +30,12 @@ export class TasksService {
   }
 
   findAll(skip: number, take: number): Promise<TaskEntity[]> {
-    return this.tasksRepository.find({ skip, take });
+    return this.tasksRepository.find({
+      where: { parentId: IsNull() },
+      relations: ['children'],
+      skip,
+      take,
+    });
   }
 
   async update(id: string, task: TaskEntity): Promise<TaskEntity> {

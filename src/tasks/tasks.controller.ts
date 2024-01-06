@@ -84,6 +84,16 @@ export class TasksController {
           parentTaskId: task.parentId,
           createdAt: task.createdAt.toISOString(),
           updatedAt: task.updatedAt.toISOString(),
+          children: task.children.map((child) => {
+            return <Task>{
+              id: child.id,
+              title: child.title,
+              description: child.description,
+              parentTaskId: child.parentId,
+              createdAt: child.createdAt.toISOString(),
+              updatedAt: child.updatedAt.toISOString(),
+            };
+          }),
         };
       }),
     };
